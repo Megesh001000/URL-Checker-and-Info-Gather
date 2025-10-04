@@ -1,0 +1,63 @@
+{% extends 'detection/base.html' %}
+{% block content %}
+{%load static%}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg p-5 text-center result-card animate__animated animate__zoomIn ">
+        <h2 class="mb-4">URL Safety Result</h2>
+
+        <!-- Dynamic Result -->
+        <div id="resultStatus" class="result-status mb-4">
+          <h3 class="{{ css_class }} animate__animated animate__fadeIn">{{ message }}</h3>
+        </div>
+
+        <!-- Extra Info -->
+        <div id="extraInfo" class="extra-info text-muted">
+          <p><strong>URL:</strong> {{ url }}</p>
+          <p>{{ tip }}</p>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-4">
+          <a href="{% url 'home' %}" class="btn btn-outline-primary btn-lg animate__animated animate__fadeInUp">
+            🔙 Check Another URL
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% comment %} 
+<style>
+    
+.text-success {
+      background: rgba(40, 167, 69, 0.2);
+      border: 2px solid #28a745;
+      
+  }
+
+  .text-warning {
+      background: rgba(255, 193, 7, 0.2);
+      border: 2px solid #ffc107;
+      color: #856404;
+  }
+
+  .text-danger {
+      background: rgba(220, 53, 69, 0.2);
+      border: 2px solid #dc3545;
+      color: #dc3545;
+  }
+
+  .card-3d {
+      border-radius: 20px;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      backdrop-filter: blur(8px);
+  }
+
+  .card-3d:hover {
+      transform: rotateY(5deg) rotateX(3deg) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }</style> {% endcomment %}
+{% endblock %}

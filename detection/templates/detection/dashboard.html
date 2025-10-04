@@ -1,0 +1,29 @@
+{%extends "detection/base.html"%}
+
+{%load static%}
+
+{%block content%}
+<div class="container mt-5">
+    <h2 textcenter mb-4 animate_animated animate animate__fadeInDown>
+        <i class="fas fa-chart-line"></i> URL Safety Dashboard
+    </h2> 
+
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 rounded-3 dashboard-card bg-danger text-white text-center p-4 animate__animated animate__fadeInUp">
+                <h3>{{phishing_count}}</h3>
+                <p>Phishing URL Detected</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 rounded-3 dashboard-card bg-danger text-dark text-center p-4 animate__animated animate__fadeInRight">
+                <h3>{{ total_scans }}</h3>
+                <p>Total Scans</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+{%endblock%}
