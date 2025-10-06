@@ -8,6 +8,10 @@ from detection.models import URLHistory
 from django.core.paginator import Paginator
 from django.urls import reverse
 
+from .models import URLScan
+from django.db.models import Count
+from django.utils.timezone import now
+
 def home(request):
     return render(request,"detection/home.html")
 
@@ -119,4 +123,19 @@ def delete_entry(request, pk):
 
 
 def dashboard(request):
-    return render(request,'detection/dashboard.html')
+    safe_count=URLScan.objects.filter(status='Safe').count()            # Total safe URLs
+   
+    phishing_count=URLScan.objects.filter(status='Phishing').count()    # Total phishing URLs
+
+    scan_days=URLScan.objects.dates('scan_days','day').count()          # Total scan days (unique dates)
+
+    
+    recent_scans=URLScan.objects.dates('-scan_dates')[:10]              # Recent scans (last 10)   
+
+    context={  
+        safe_count:'safe_count',
+        phishing_count:'phishing_count',
+        
+        recent_scans:'recent_scans',
+        scan_days:'scan_days'}   
+    return render(request, 'dashboard.html', context)

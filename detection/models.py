@@ -13,3 +13,18 @@ class URLHistory(models.Model):
 
     def __str__(self):
         return f"{self.url} - {self.result}"
+
+        
+class URLScan(models.Model):
+    STATUS_CHOICES=(
+        ('Safe','Safe'),
+        ('Phishing','Phishing'))
+    
+
+    url=models.URLField(max_length=500)
+    status=models.CharField(max_length=10,choices=STATUS_CHOICES)
+    scan_days=models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"{self.url} - {self.status}"

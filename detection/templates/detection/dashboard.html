@@ -10,6 +10,13 @@
 
     <div class="row mb-5">
         <div class="col-md-4">
+            <div class="card shadow-lg border-0 rounded-3 dashboard-card bg-success text-white text-center p-4 animate__animated animate__fadeInLeft">
+                <h3>{{ safe_count }}</h3>
+                <p>Safe URLs Detected</p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
             <div class="card shadow-lg border-0 rounded-3 dashboard-card bg-danger text-white text-center p-4 animate__animated animate__fadeInUp">
                 <h3>{{phishing_count}}</h3>
                 <p>Phishing URL Detected</p>
@@ -22,8 +29,99 @@
             </div>
         </div>
     </div>
+
+
+
+    <!-- Charts Section -->
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg pd-3 rounded-3">
+                <h5 class="text-center">Safe Vs Phishing</h5></div>
+                <canvas id="piechart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-lg pd-3 rounded-3">
+                <h5 class="text-center">Daily Scans Trends</h5></div>
+                <canvas id="linechart"></canvas>
+            </div>
+        </div>
+
+    </div>
+      <!-- History Table Preview -->
+    <div class="card shadow-lg pd-3 rounded-3 mt-4">
+        <h5 class="text-center">Recent Scan History</h5>
+        <table class="table table-hover mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>URL</th>
+                    <th>Status</th>
+                    <th>Threat Score</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scan in recent_scans %}
+                <tr>
+                    <td>{{scan.url}}</td>
+    
+                    <td>
+                        {% comment %} {{% if scan.is_phishing%}}
+                                <span class="badge bg-danger">Phishing</span>
+                        {{%else%}}
+                                <span class="badge bg-success">Safe</span>
+                        {{%endif%}} {% endcomment %}
+                    </td>
+                    <td>{{scan.threat_score}}</td>
+                    <td>{{scan.timestamp}}</td>
+                </tr>
+                 {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center">No scans yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        <table>
+    </div>
+
 </div>
 
 
+
+<!-- Chart.js Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Pie Chart Data
+    const pieData = {
+        labels: ['Safe URLs', 'Phishing URLs'],
+        datasets: [{
+            data: [{{ safe_count }}, {{ phishing_count }}],
+            backgroundColor: ['#28a745', '#dc3545'],
+            hoverOffset: 10
+        }]
+    };
+    new Chart(document.getElementById('pieChart'), {
+        type: 'pie',
+        data: pieData
+    });
+
+    // Line Chart Data
+    const lineData = {
+        labels: [{% for day in scan_days %}'{{ day.date }}',{% endfor %}],
+        datasets: [{
+            label: 'Number of Scans',
+            data: [{% for day in scan_days %}{{ day.count }},{% endfor %}],
+            fill: true,
+            borderColor: '#007bff',
+            backgroundColor: 'rgba(0,123,255,0.2)',
+            tension: 0.3
+        }]
+    };
+    new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: lineData
+    });
+</script>
 
 {%endblock%}
