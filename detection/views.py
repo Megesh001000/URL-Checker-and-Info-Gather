@@ -1,3 +1,4 @@
+import os
 from django.shortcuts import render, get_object_or_404,redirect
 from django.http import HttpResponse
 import re
@@ -18,6 +19,7 @@ from .forms import UploadFileForm
 
 
 from .models import URLHistory, URLScan,UploadFile
+import pandas as pd
 
 
 def home(request):
@@ -155,8 +157,30 @@ def dashboard(request):
 # view for attachement or uploading files
 
 def attachment(request):
-    # if request.method=="POST":
-    #     file=UploadFileForm(request.POST,request.FILES)
-    #     if file.is_valid():
-    #         file=request.FILES['files']
-    return(request,"detection/attachment.html")
+    result=None
+    if request.method=="POST":
+        file=UploadFileForm(request.POST,request.FILES)
+        if file.is_valid():
+            uploaded_file=request.FILES['files']
+            file_name=uploaded_file.name
+            file_ext=os.path.splittext(file_name)[1].lower()
+
+ # Handle dataset upload (.csv)
+            if file_ext==".csv":
+                df=pd.read_csv(uploaded_file)
+                result=f"Dataset Uploaded Sucessfully! {len(df)} rows loaded "
+
+              # Handle text or email attachments
+            elif file_ext in ['.txt', '.eml', '.html']:
+                content=uploaded_file.read().decode('utf-8' ,errors='ignore')
+                 # Simple phishing keyword detection example
+                if "login" in content or "verify your account" in content:
+                    result = "🚨 Suspicious content detected!"
+                else:
+                    result = "✅ No phishing patterns detected."
+            
+            else:
+                result = "⚠️ Unsupported file type!"
+    else:
+        form = UploadFileForm()
+    return render(request, "detection/attachment.html", {'form': form, 'result': result})
