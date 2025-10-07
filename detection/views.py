@@ -2,15 +2,23 @@ from django.shortcuts import render, get_object_or_404,redirect
 from django.http import HttpResponse
 import re
 
-from .models import URLHistory
 
-from detection.models import URLHistory
 from django.core.paginator import Paginator
 from django.urls import reverse
 
-from .models import URLScan
+
 from django.db.models import Count
 from django.utils.timezone import now
+
+from django.db.models.functions import TruncDate
+
+
+from .forms import UploadFileForm
+
+
+
+from .models import URLHistory, URLScan,UploadFile
+
 
 def home(request):
     return render(request,"detection/home.html")
@@ -35,10 +43,6 @@ def home(request):
 #             return "Suspicious"
     
 #     return "Phishing"
-
-import re
-from django.shortcuts import render
-from .models import URLHistory
 
 def result(request):
     url = request.GET.get("url", "").strip()
@@ -71,18 +75,20 @@ def result(request):
         css_class = "text-danger"
         tip = "Avoid entering credentials or personal data."
 
-    # Save to history
+    # Save to both tables (if needed)
     if url:
         URLHistory.objects.create(url=url, result=result_text)
+        URLScan.objects.create(url=url, status=result_text)  # ✅ Important line
 
-    # Pass context to template
     context = {
         "url": url,
         "result": result_text,
         "css_class": css_class,
         "tip": tip,
     }
+
     return render(request, "detection/result.html", context)
+
 
 
 
@@ -121,21 +127,36 @@ def delete_entry(request, pk):
 
 
 
-
 def dashboard(request):
-    safe_count=URLScan.objects.filter(status='Safe').count()            # Total safe URLs
-   
-    phishing_count=URLScan.objects.filter(status='Phishing').count()    # Total phishing URLs
+    # Count Safe and Phishing URLs
+    safe_count = URLScan.objects.filter(status='Safe').count()
+    phishing_count = URLScan.objects.filter(status='Phishing').count()
 
-    scan_days=URLScan.objects.dates('scan_days','day').count()          # Total scan days (unique dates)
+    # Count scans per day for chart
+    scan_days = (
+        URLScan.objects.annotate(date_only=TruncDate('scan_days'))
+        .values('date_only')
+        .annotate(count=Count('id'))
+        .order_by('date_only')
+    )
 
-    
-    recent_scans=URLScan.objects.dates('-scan_dates')[:10]              # Recent scans (last 10)   
+    # Get the 5 most recent scans
+    recent_scans = URLScan.objects.all().order_by('-scan_days')[:5]
 
-    context={  
-        safe_count:'safe_count',
-        phishing_count:'phishing_count',
-        
-        recent_scans:'recent_scans',
-        scan_days:'scan_days'}   
-    return render(request, 'dashboard.html', context)
+    context = {
+        'safe_count': safe_count,
+        'phishing_count': phishing_count,
+        'scan_days': list(scan_days),
+        'recent_scans': recent_scans,
+    }
+
+    return render(request, 'detection/dashboard.html', context)
+
+# view for attachement or uploading files
+
+def attachment(request):
+    # if request.method=="POST":
+    #     file=UploadFileForm(request.POST,request.FILES)
+    #     if file.is_valid():
+    #         file=request.FILES['files']
+    return(request,"detection/attachment.html")

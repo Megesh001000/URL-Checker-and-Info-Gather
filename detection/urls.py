@@ -7,5 +7,6 @@ urlpatterns = [
       path('history/', views.history, name='history'),
       path('recheck/<int:pk>/', views.recheck, name='recheck'),
       path('delete/<int:pk>/', views.delete_entry, name='delete'),
-      # path('dashboard/',views.dashboard,name="dashboard")
+      path('dashboard/',views.dashboard,name="dashboard"),
+      path('attachment/',views.attachment,name="attachment"),
 ]

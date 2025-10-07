@@ -29,35 +29,48 @@
   </div>
 </div>
 
-{% comment %} 
-<style>
-    
+ <style>
+.result-card {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: #333;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.result-card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
 .text-success {
-      background: rgba(40, 167, 69, 0.2);
-      border: 2px solid #28a745;
-      
-  }
+  background: rgba(40, 167, 69, 0.15);
+  border: 2px solid #28a745;
+  color: #28a745;
+  padding: 10px;
+  border-radius: 12px;
+}
 
-  .text-warning {
-      background: rgba(255, 193, 7, 0.2);
-      border: 2px solid #ffc107;
-      color: #856404;
-  }
+.text-warning {
+  background: rgba(255, 193, 7, 0.15);
+  border: 2px solid #ffc107;
+  color: #856404;
+  padding: 10px;
+  border-radius: 12px;
+}
 
-  .text-danger {
-      background: rgba(220, 53, 69, 0.2);
-      border: 2px solid #dc3545;
-      color: #dc3545;
-  }
+.text-danger {
+  background: rgba(220, 53, 69, 0.15);
+  border: 2px solid #dc3545;
+  color: #dc3545;
+  padding: 10px;
+  border-radius: 12px;
+}
 
-  .card-3d {
-      border-radius: 20px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      backdrop-filter: blur(8px);
-  }
+.result-status h3 {
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+</style>
 
-  .card-3d:hover {
-      transform: rotateY(5deg) rotateX(3deg) scale(1.02);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-  }</style> {% endcomment %}
 {% endblock %}
