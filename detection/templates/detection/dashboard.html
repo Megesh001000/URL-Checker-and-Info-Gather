@@ -77,12 +77,12 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if scan.threat_score >= 70 %}
-                            <span class="badge bg-danger">{{ scan.threat_score }}</span>
-                        {% elif scan.threat_score >= 30 %}
-                            <span class="badge bg-warning">{{ scan.threat_score }}</span>
+                        {% if scan.threat_scores >= 70 %}
+                            <span class="badge bg-danger">{{ scan.threat_scores }}</span>
+                        {% elif scan.threat_scores >= 30 %}
+                            <span class="badge bg-warning">{{ scan.threat_scores }}</span>
                         {% else %}
-                            <span class="badge bg-success">{{ scan.threat_score }}</span>
+                            <span class="badge bg-success">{{ scan.threat_scores }}</span>
                         {% endif %}
                     </td>
                     <td>{{ scan.scan_days }}</td>
@@ -112,6 +112,7 @@
                 backgroundColor: ['#28a745', '#dc3545'],
                 hoverOffset: 10
             }]
+            
         }
     });
 

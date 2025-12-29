@@ -1,0 +1,31 @@
+# Django / Python
+*.pyc
+__pycache__/
+db.sqlite3
+*.log
+*.env
+
+# ML models
+/ml_models/*
+
+# Gmail API secrets
+/gmail_scanner/client_secret.json
+/gmail_scanner/token.json
+
+
+# Token process
+/gmail_scanner/create_token_from_env.py
+/gmail_scanner/get_refresh_token.py
+
+# Dataset (if you don’t want to push CSVs)
+/dataset/*
+
+# VSCode / IDE
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+/venv

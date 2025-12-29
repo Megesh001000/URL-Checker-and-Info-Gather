@@ -1,0 +1,425 @@
+
+/* 
+   Global Imports
+ */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css');
+
+/* 
+   Global Page Layout
+ /* */
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #0a192f, #112240);
+    color: #e0e0e0;
+} 
+ body > .container {
+  flex: 1;
+} 
+
+nav{
+    background: #343a40;
+    color: rgb(255, 255, 255);
+    text-align: center;
+    padding: 15px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    animation: fadeInNav 1s ease-in-out;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+
+}
+@keyframes fadeInNav {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+/* 
+   Footer
+ */
+footer {
+    background: #343a40;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 40px;
+    padding-bottom: 10px;
+    width: 100%;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    animation: fadeInFooter 1s ease-in-out;
+    border-top: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle fade-in animation */
+@keyframes fadeInFooter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 
+   3D Card Design
+ */
+.card-3d {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card-3d:hover {
+    transform: rotateY(10deg) rotateX(5deg) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* 
+   Result Section
+  
+
+.result {
+    font-size: 1.2rem;
+    font-weight: bold;
+    transition: all 0.5s ease;
+    opacity: 0;
+}
+.result.show {
+    opacity: 1;
+}
+
+.result-card {
+    background: linear-gradient(180deg, #ffffff, #f8f9fa);
+    border:5px solid #007bff;
+    border-radius: 15px;
+    
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.result-card:hover {
+    transform: translateY(-5px);
+    
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 15);  
+}
+
+.result-status h3.safe {
+   color: #28a745;
+  text-shadow: 1px 1px 5px rgba(0, 128, 0, 0.2);
+}
+.result-status h3.warning {
+  color: #ffc107;
+  text-shadow: 1px 1px 5px rgba(255, 193, 7, 0.2);
+}
+
+.result-status h3.danger {
+  color: #dc3545;
+  text-shadow: 1px 1px 5px rgba(220, 53, 69, 0.3);
+}
+
+.extra.info{
+    font-size: 15px;
+    color: #6c757d;
+
+}
+.progress-bar{
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 10px;
+}
+ul{
+    margin: 0;
+    padding-left: 20px;
+}
+ul li{
+    margin-bottom: 6px;
+} 
+
+   Color-Coded Results 
+.text-success {
+    background: rgba(40, 167, 69, 0.15);
+    border: 2px solid #28a745;
+    color: #f5f5f5;
+    padding: 10px;
+    border-radius: 12px;
+    text-shadow: 1px 1px 10px rgba(40, 167, 69, 0.4);
+}
+
+.text-warning {
+    background: rgba(255, 193, 7, 0.15);
+    border: 2px solid #ffc107;
+    color:white;
+    padding: 10px;
+    border-radius: 12px;
+    text-shadow: 1px 1px 10px rgba(255, 193, 7, 0.4);
+}
+
+.text-danger {
+    background: rgba(220, 53, 69, 0.15);
+    border: 2px solid #dc3545;
+    color:white;
+    padding: 10px;
+    border-radius: 12px;
+    text-shadow: 1px 1px 10px rgba(220, 53, 69, 0.4);
+} 
+*/
+
+ /* Buttons*/ 
+.btn-primary {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+.btn-primary i, 
+.btn-danger i {
+    margin-right: 5px;
+}
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Gradient Button */
+.btn-gradient {
+    background: linear-gradient(90deg, #00b4db, #0083b0);
+    border: none;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 40px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(0, 180, 219, 0.5);
+}
+.btn-gradient:hover {
+    background: linear-gradient(90deg, #00d4ff, #0072ff);
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(0, 180, 219, 0.9);
+}
+
+/* 
+   Attachment Upload Card
+ */
+/* .attachment-card {
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s ease;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+.attachment-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0, 255, 255, 0.3);
+}
+
+h2 {
+    color: #00e5ff;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.text-muted {
+    color: #9ca3af !important;
+}
+
+form {
+    margin-top: 10px;
+}
+
+/* 
+   File Input
+ */
+/* input[type="file"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(0, 242, 255, 0.5);
+    border-radius: 10px;
+    color: #e0f7fa;
+    padding: 10px;
+    width: 100%;
+    margin-top: 10px;
+    transition: border-color 0.3s ease;
+}
+input[type="file"]:hover {
+    border-color: #00f5d4;
+} */
+
+/* 
+   Custom Alert Boxes
+ */
+/* .alert-custom {
+    padding: 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    box-shadow: 0 5px 25px rgba(0, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+.alert-custom strong {
+    font-size: 18px;
+} */
+
+/* Dynamic Color Alerts */
+/* .alert-custom.safe {
+    background: rgba(0, 255, 170, 0.1);
+    border-left: 5px solid #00ffcc;
+    color: #00ffb0;
+}
+.alert-custom.suspicious {
+    background: rgba(255, 69, 69, 0.1);
+    border-left: 5px solid #ff4d4d;
+    color: #ff6666;
+}
+.alert-custom.unsupported {
+    background: rgba(255, 204, 0, 0.1);
+    border-left: 5px solid #ffcc00;
+    color: #ffdd66;
+}  */
+
+/* Glassmorphic Attachment Card */
+.attachment-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    transition: all 0.5s ease;
+    padding: 3rem;
+    position: relative;
+}
+
+.attachment-card::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    border-radius: 16px;
+    background: linear-gradient(120deg, #00f5d4, #00e5ff, #00cfff, #00f5d4);
+    filter: blur(20px);
+    opacity: 0.4;
+    z-index: 0;
+}
+
+.attachment-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 15px 50px rgba(0, 255, 255, 0.4);
+}
+
+/* Headings */
+h2 {
+    color: #00e5ff;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Text */
+.text-muted {
+    color: #a0aec0 !important;
+}
+
+/* Form */
+form {
+    margin-top: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* File Input */
+input[type="file"] {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(0, 242, 255, 0.5);
+    border-radius: 12px;
+    color: #e0f7fa;
+    padding: 12px;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+}
+input[type="file"]:hover {
+    border-color: #00f5d4;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+}
+
+/* Buttons */
+.btn-gradient {
+    background: linear-gradient(135deg, #00f5d4, #00cfff);
+    color: #000;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+.btn-gradient:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 255, 255, 0.5);
+}
+
+/* Custom Alert Boxes */
+.alert-custom {
+    padding: 18px 22px;
+    border-radius: 12px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    box-shadow: 0 5px 25px rgba(0, 255, 255, 0.25);
+    transition: all 0.4s ease;
+}
+.alert-custom strong {
+    font-size: 18px;
+}
+
+/* Dynamic Color Alerts */
+.alert-custom.safe {
+    background: rgba(0, 255, 170, 0.15);
+    border-left: 6px solid #00ffcc;
+    color: #00ffb0;
+}
+.alert-custom.suspicious {
+    background: rgba(255, 69, 69, 0.15);
+    border-left: 6px solid #ff4d4d;
+    color: #ff6666;
+}
+.alert-custom.unsupported {
+    background: rgba(255, 204, 0, 0.15);
+    border-left: 6px solid #ffcc00;
+    color: #ffdd66;
+}
+
+
+/* 
+   Dashboard Cards
+ */
+.dashboard-card {
+    transform: perspective(1000px) rotateX(5deg);
+    transition: transform 0.1s ease;
+}
+.dashboard-card:hover {
+    transform: perspective(1000px) rotateX(0deg) scale(1.05);
+}
+
+/* 
+   Animations
+ */
+.animate__fadeInUp {
+    animation-duration: 1.2s;
+}
+.animate__fadeIn {
+    animation-duration: 1s;
+}

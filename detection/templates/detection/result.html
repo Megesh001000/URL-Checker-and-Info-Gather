@@ -1,76 +1,309 @@
 {% extends 'detection/base.html' %}
+{% comment %} {% extends 'detection/base.html' %}
+{% load static %}
+
 {% block content %}
-{%load static%}
-<div class="container mt-5">
+<div class="container mt-5 mb-5">
   <div class="row justify-content-center">
-    <div class="col-md-8">
-      <div class="card shadow-lg p-5 text-center result-card animate__animated animate__zoomIn ">
-        <h2 class="mb-4">URL Safety Result</h2>
+    <div class="col-lg-8">
+      
+      <div class="card result-card shadow-lg p-4 animate__animated animate__zoomIn rounded-4">
 
-        <!-- Dynamic Result -->
-        <div id="resultStatus" class="result-status mb-4">
-          <h3 class="{{ css_class }} animate__animated animate__fadeIn">{{ message }}</h3>
+        {% if error %}
+          <div class="alert alert-danger">{{ error }}</div>
+        {% else %}
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h3 class="mb-0">🔍 URL Scan Result</h3>
+          <span class="fs-6 fw-bold {{ css_class }}">{{ decision }}</span>
         </div>
 
-        <!-- Extra Info -->
-        <div id="extraInfo" class="extra-info text-muted">
-          <p><strong>URL:</strong> {{ url }}</p>
-          <p>{{ tip }}</p>
+        <!-- URL -->
+        <div class="mb-3">
+          <small class="text-muted">Scanned URL</small>
+          <div class="fw-bold">{{ url }}</div>
         </div>
 
-        <!-- Back Button -->
-        <div class="mt-4">
-          <a href="{% url 'home' %}" class="btn btn-outline-primary btn-lg animate__animated animate__fadeInUp">
-            🔙 Check Another URL
-          </a>
+        <!-- Two-Column Basic Details -->
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 shadow-sm">
+              <h6 class="mb-2">Site Information</h6>
+
+              <p><strong>Domain:</strong> {{ features.tld }}</p>
+              <p><strong>IP Address:</strong> {{ features.ip_address }}</p>
+
+              <p><strong>Geo:</strong>
+                {{ features.ip_geolocation.city }},
+                {{ features.ip_geolocation.region }},
+                {{ features.ip_geolocation.country }}
+              </p>
+
+              <p><strong>Domain Age:</strong> {{ features.domain_age }}</p>
+              <p><strong>Domain Expiry:</strong> {{ features.domain_expiry }}</p>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="p-3 bg-light rounded-3 shadow-sm">
+
+              <h6 class="mb-2">Security Features</h6>
+
+              <p><strong>SSL Issuer:</strong> {{ features.ssl_issuer }}</p>
+              <p><strong>SSL Valid:</strong> {{ features.ssl_valid }}</p>
+              <p><strong>SSL Expiry:</strong> {{ features.ssl_expiry }}</p>
+
+              <p><strong>HTTPS:</strong> {{ features.https }}</p>
+
+              <p><strong>Blacklist:</strong>
+                {% if features.blacklist.blacklisted %}
+                  <span class="text-danger fw-bold">BLACKLISTED</span>
+                {% else %}
+                  <span class="text-success fw-bold">Not Blacklisted</span>
+                {% endif %}
+              </p>
+
+            </div>
+          </div>
+
         </div>
+
+        <!-- Technical Details -->
+        <div class="mt-4 p-3 bg-white rounded-3 border shadow-sm">
+          <h6 class="mb-3">Technical Details</h6>
+
+          <p><strong>DNS Record:</strong> {{ features.dns_record }}</p>
+          <p><strong>TTL:</strong> {{ features.ttl }}</p>
+          <p><strong>Entropy:</strong> {{ features.entropy }}</p>
+          <p><strong>Forms:</strong> {{ features.forms }}</p>
+          <p><strong>Iframes:</strong> {{ features.iframes }}</p>
+          <p><strong>JS Includes Ratio:</strong> {{ features.js_includes }}</p>
+        </div>
+
+        <!-- Blacklist Details -->
+        <div class="mt-4 p-3 bg-white rounded-3 border shadow-sm">
+          <h6 class="mb-2">Blacklist Details</h6>
+          <p><strong>Source:</strong> {{ features.blacklist.source }}</p>
+          <p><strong>Details:</strong> {{ features.blacklist.details }}</p>
+        </div>
+
+        <!-- ML Score -->
+        <div class="mt-4 p-3 bg-white rounded-3 border shadow-sm">
+          <h6 class="mb-2">Machine Learning Score</h6>
+          <p class="fw-bold">{{ features.ml_score }}</p>
+        </div>
+
+        <!-- Raw JSON -->
+        <div class="mt-4 p-3 bg-dark text-light rounded-3 shadow-sm" style="max-height:350px; overflow:auto;">
+          <h6 class="mb-2">Raw Features (Debug)</h6>
+          <pre>{{ raw|safe }}</pre>
+        </div>
+
+        <!-- Actions -->
+        <div class="mt-4 d-flex gap-2 justify-content-center">
+          <a href="{% url 'home' %}" class="btn btn-primary btn-lg">🔁 Scan Another URL</a>
+        </div>
+
+        {% endif %}
       </div>
     </div>
   </div>
 </div>
 
- <style>
+
+<style>
 .result-card {
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  color: #333;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(180deg, #ffffff, #f7f9fb);
+  border-radius: 12px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-
 .result-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(20, 30, 60, 0.08);
 }
-
-.text-success {
-  background: rgba(40, 167, 69, 0.15);
-  border: 2px solid #28a745;
-  color: #28a745;
-  padding: 10px;
-  border-radius: 12px;
-}
-
-.text-warning {
-  background: rgba(255, 193, 7, 0.15);
-  border: 2px solid #ffc107;
-  color: #856404;
-  padding: 10px;
-  border-radius: 12px;
-}
-
-.text-danger {
-  background: rgba(220, 53, 69, 0.15);
-  border: 2px solid #dc3545;
-  color: #dc3545;
-  padding: 10px;
-  border-radius: 12px;
-}
-
-.result-status h3 {
-  font-weight: 600;
-  font-size: 1.5rem;
+pre {
+  white-space: pre-wrap;
+  font-size: 0.82rem;
 }
 </style>
+
+{% endblock %} {% endcomment %}
+
+
+
+{% load static %}
+{% block content %}
+
+<div class="container py-4">
+    
+    <!-- HEADER -->
+    <div class="mb-4 text-center">
+        <h2 class="fw-bold">🔍 URL Scan Result</h2>
+        <div class="{{ css_class }} fs-5 fw-bold">{{ decision }}</div>
+        <div class="text-muted mt-1">Scanned URL:</div>
+        <div class="fw-semibold text-break">
+            <a href="{{ url }}" target="_blank">{{ url }}</a>
+        </div>
+    </div>
+
+    <!-- VIRUSTOTAL SUMMARY -->
+    <div class="card shadow-sm p-3 mb-4">
+        <h5 class="fw-bold mb-3">VirusTotal Summary</h5>
+
+        {% if vt_error %}
+            <div class="alert alert-warning">VT Error: {{ vt_error }}</div>
+        {% endif %}
+
+        <div class="row text-center">
+            <div class="col-4">
+                <div class="fw-bold text-danger">{{ features.vt_malicious }}</div>
+                <div class="text-muted small">Malicious</div>
+            </div>
+            <div class="col-4">
+                <div class="fw-bold text-warning">{{ features.vt_suspicious }}</div>
+                <div class="text-muted small">Suspicious</div>
+            </div>
+            <div class="col-4">
+                <div class="fw-bold text-success">{{ features.vt_harmless }}</div>
+                <div class="text-muted small">Harmless</div>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <strong>Reputation:</strong> {{ features.vt_reputation }}<br>
+            <strong>Final URL:</strong>
+            <a href="{{ features.vt_final_url }}" target="_blank">
+                {{ features.vt_final_url }}
+            </a>
+        </div>
+    </div>
+
+    <!-- FEATURES GRID -->
+    <div class="card shadow-sm p-4 rounded-4">
+        <h5 class="fw-bold mb-3">Technical Analysis</h5>
+
+        <div class="row g-3">
+
+            <!-- Left -->
+            <div class="col-md-6">
+                <div class="p-3 bg-light border rounded-3">
+                    <h6 class="mb-2 fw-bold">Domain / Network</h6>
+                    <p><strong>IP Address:</strong> {{ features.ip_address }}</p>
+                    <p><strong>Country:</strong> {{ features.ip_geolocation.country }}</p>
+                    <p><strong>Region:</strong> {{ features.ip_geolocation.region }}</p>
+                    <p><strong>City:</strong> {{ features.ip_geolocation.city }}</p>
+                    <p><strong>Organization:</strong> {{ features.ip_geolocation.org }}</p>
+                    <p><strong>Domain Age:</strong> {{ features.domain_age }}</p>
+                    <p><strong>Domain Expiry:</strong> {{ features.domain_expiry }}</p>
+                    <p><strong>DNS Record:</strong> {{ features.dns_record }}</p>
+                </div>
+            </div>
+
+            <!-- Right -->
+            <div class="col-md-6">
+                <div class="p-3 bg-light border rounded-3">
+                    <h6 class="mb-2 fw-bold">Security</h6>
+                    <p><strong>HTTPS:</strong> {{ features.https }}</p>
+                    <p><strong>SSL Issuer:</strong> {{ features.ssl_issuer }}</p>
+                    <p><strong>SSL Valid:</strong> {{ features.ssl_valid }}</p>
+                    <p><strong>SSL Expiry:</strong> {{ features.ssl_expiry }}</p>
+                    <p><strong>Blacklist:</strong>
+                        {% if features.blacklist.blacklisted %}
+                            <span class="text-danger fw-bold">YES</span>
+                        {% else %}
+                            <span class="text-success fw-bold">NO</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Source:</strong> {{ features.blacklist.source }}</p>
+                    <p><strong>Details:</strong> {{ features.blacklist.details }}</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- VENDOR RESULTS -->
+    {% if vendors %}
+    <div class="card shadow-sm p-4 mt-4 rounded-4">
+        <h5 class="fw-bold mb-3">VirusTotal Vendor Results</h5>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Engine</th>
+                        <th>Category</th>
+                        <th>Method</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+                <tbody id="vendorBody">
+                    {% for v in vendors|slice:":10" %}
+                        <tr>
+                            <td>{{ v.engine }}</td>
+                            <td>{{ v.category }}</td>
+                            <td>{{ v.method }}</td>
+                            <td>{{ v.result }}</td>
+                        </tr>
+                    {% endfor %}
+                    {% for v in vendors|slice:"10:" %}
+                        <tr class="extra-vendor d-none">
+                            <td>{{ v.engine }}</td>
+                            <td>{{ v.category }}</td>
+                            <td>{{ v.method }}</td>
+                            <td>{{ v.result }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if vendors|length > 10 %}
+        <div class="text-center mt-2">
+            <button id="expandVendors" class="btn btn-outline-primary btn-sm">
+                See More
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- RAW DETAILS -->
+    <div class="card shadow-sm p-4 mt-4 rounded-4">
+        <h5 class="fw-bold mb-2">Raw Feature Output</h5>
+        <button id="toggleRaw" class="btn btn-sm btn-outline-secondary mb-2">Show Raw JSON</button>
+        <pre id="rawBox" class="bg-dark text-info p-3 rounded" style="display:none;">
+{{ raw|safe }}
+        </pre>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'home' %}" class="btn btn-primary btn-lg">🔁 Scan Another URL</a>
+        <a href="{% url 'history' %}" class="btn btn-outline-secondary btn-lg">📜 View History</a>
+    </div>
+
+</div>
+
+<script>
+// RAW TOGGLE
+document.getElementById("toggleRaw")?.addEventListener("click", function(){
+    const box = document.getElementById("rawBox");
+    if(box.style.display === "none"){
+        box.style.display = "block";
+        this.textContent = "Hide Raw JSON";
+    } else {
+        box.style.display = "none";
+        this.textContent = "Show Raw JSON";
+    }
+});
+
+// Vendor expansion
+document.getElementById("expandVendors")?.addEventListener("click", function(){
+    document.querySelectorAll(".extra-vendor").forEach(row => row.classList.toggle("d-none"));
+    this.textContent = this.textContent === "See More" ? "See Less" : "See More";
+});
+</script>
 
 {% endblock %}

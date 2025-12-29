@@ -1,41 +1,397 @@
-{%extends 'detection/base.html' %}
-{%load static%}
-{%block content%}
+{% extends 'detection/base.html' %}
+{% block content %}
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Attachment Scanner</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    :root{
+      --bg-top: #071229;
+      --bg-bottom: #0f2b44;
+      --muted: #9ca3af;
+      --card-bg: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.06);
+      --accent: #00e5ff;
+      --safe-bg: #e6fffb;
+      --safe-color: #007a6d;
+      --danger-bg: #ffecec;
+      --danger-color: #a61b1b;
+      --mono-dark: #0f1724;
+    }
 
+    body {
+      background: linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+      color: #eaf6fb;
+      min-height: 100vh;
+      padding: 20px 16px 40px 16px;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      margin-top: 70px
+    }
 
+    .scanner-wrap { max-width: 1100px; margin: 0 auto; margin-top: 20px;  }
+    .top-card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border-radius: 14px;
+      padding: 22px;
+      border: 1px solid var(--glass);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.5);
+    }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg p-5 rounded-4 animate__animated animate__fadeInUp attachment-card">
-                <h2 class="text-center mb-4">
-                    <i class="fas fa-paperclip"></i> File Attachment Scanner
-                </h2>
-                <p class="text-center text-muted mb-4">
-                    Upload your file (CSV, TXT, HTML, or EML) to analyze its safety and check for phishing patterns.
-                </p>
+    h1 { color: var(--accent); font-weight:700; letter-spacing:0.2px; margin-bottom:6px; }
+    .muted { color: var(--muted); }
 
-                <!-- Upload Form -->
-                <form method="POST" enctype="multipart/form-data" class="text-center">
-                    {% csrf_token %}
-                    <div class="mb-4">
-                        {{ form.as_p }}
+    .upload-area {
+      margin-top: 14px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+
+    .file-meta {
+      background: #ffffff08;
+      color: #e9f9ff;
+      padding:12px;
+      border-radius:10px;
+      border: 1px solid rgba(255,255,255,0.03);
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg,#0066ff,#00b1ff);
+      border: none;
+      box-shadow: 0 6px 14px rgba(3,102,214,0.18);
+    }
+
+    .results-area { margin-top:20px; }
+
+    .url-card {
+      background: #ffffff;
+      color: var(--mono-dark);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      border-left: 6px solid #f0f0f0;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+    }
+
+    .url-left { flex: 1 1 60%; }
+    .url-right { width: 220px; text-align:right; }
+
+    .badge-safe { background: var(--safe-bg); color: var(--safe-color); padding:6px 8px; border-radius:6px; font-weight:600; }
+    .badge-danger { background: var(--danger-bg); color: var(--danger-color); padding:6px 8px; border-radius:6px; font-weight:700; }
+
+    .meta-row { font-size:0.88rem; color:#334; display:flex; gap:12px; align-items:center; justify-content:flex-start; flex-wrap:wrap; }
+    .small-muted { color:#6b7280; font-size:0.82rem; }
+
+    .details-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px; }
+    .detail-pill { background:#f6f8fa; padding:8px; border-radius:8px; color:#123; font-size:0.88rem; }
+
+    .toggle-btn { margin-top:8px; }
+
+    .phish-alert { padding:10px; border-radius:8px; font-weight:600; }
+
+    .raw-pre { background:#0b1220; color:#bfefff; padding:10px; border-radius:8px; font-family:monospace; font-size:0.85rem; overflow:auto; max-height:220px; }
+
+    @media (max-width:760px){
+      .details-grid { grid-template-columns:1fr; }
+      .url-right { width:140px; text-align:left; }
+    }
+  </style>
+</head>
+<body>
+  <div class="scanner-wrap">
+    <div class="top-card">
+      <div class="d-flex align-items-center justify-content-between flex-wrap">
+        <div>
+          <h1>Attachment Scanner</h1>
+          <div class="muted">Upload a file (pdf, docx, xlsx, txt, zip). Extracted URLs will be analyzed </div>
+        </div>
+        <div class="small-muted">Module: Attachment → URL features</div>
+      </div>
+
+      <div class="upload-area mt-3">
+        <form id="upload-form" enctype="multipart/form-data" style="flex:1; display:flex; gap:12px; align-items:center;">
+          {% csrf_token %}
+          <input id="file-input" name="attachment" type="file" class="form-control form-control-lg" required style="max-width:520px;" />
+          <button id="scan-btn" class="btn btn-primary btn-lg" type="submit">🔍 Scan Attachment</button>
+        </form>
+
+        <div id="status-block" style="min-width:260px; display:flex;flex-direction:column; gap:8px; align-items:flex-end;">
+          <div id="alert-area"></div>
+          <div id="last-scan" class="small-muted">No scans yet</div>
+        </div>
+      </div>
+
+      <div id="scan-results" class="results-area">
+        <div class="text-center muted py-4">Upload a file to begin scanning.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const form = document.getElementById("upload-form");
+  const scanBtn = document.getElementById("scan-btn");
+  const resultsDiv = document.getElementById("scan-results");
+  const alertArea = document.getElementById("alert-area");
+  const lastScan = document.getElementById("last-scan");
+  const fileInput = document.getElementById("file-input");
+
+  // Helper: safe getter (avoid undefined errors)
+  function sget(obj, path, fallback = "N/A") {
+    try {
+      if (!obj) return fallback;
+      const parts = path.split(".");
+      let cur = obj;
+      for (const p of parts) {
+        if (cur[p] === undefined || cur[p] === null) return fallback;
+        cur = cur[p];
+      }
+      return cur;
+    } catch (e) { return fallback; }
+  }
+
+  // Submit
+  form.addEventListener("submit", function(evt) {
+    evt.preventDefault();
+    alertArea.innerHTML = "";
+    resultsDiv.innerHTML = `<div class="text-center muted py-4">Scanning attachment — this can take a few seconds...</div>`;
+    scanBtn.disabled = true;
+
+    const fd = new FormData(form);
+
+    fetch("{% url 'scan_attachment_json' %}", {
+      method: "POST",
+      body: fd,
+      credentials: "same-origin"
+    })
+    .then(r => r.json())
+    .then(payload => {
+      scanBtn.disabled = false;
+      if (!payload.ok) {
+        resultsDiv.innerHTML = `<div class="alert alert-danger">Scan failed: ${payload.error || "unknown error"}</div>`;
+        lastScan.textContent = "Last scan: failed";
+        return;
+      }
+
+      // Update last scan
+      lastScan.textContent = "Last scan: " + new Date().toLocaleString();
+
+      // Show file info
+      const file = payload.file || {};
+      const fname = file.file_name || "Uploaded file";
+      const fsize = file.size || 0;
+      const fsha = file.sha256 || "N/A";
+      const mime = file.mime || "application/octet-stream";
+
+      const isPhish = !!payload.is_phishing;
+      alertArea.innerHTML = isPhish
+        ? `<div class="phish-alert badge-danger">⚠ Phishing/blacklist detected in file</div>`
+        : `<div class="phish-alert badge-safe">✔ No phishing detected</div>`;
+
+      // Build results: file header
+      let html = `<div class="file-meta mb-3">
+                    <div>
+                      <div style="font-weight:700; font-size:1.05rem;">${escapeHtml(fname)}</div>
+                      <div class="muted" style="font-size:0.88rem;">${mime} • ${formatBytes(fsize)}</div>
+                    </div>
+                    <div style="margin-left:auto; text-align:right;">
+                      <div class="small-muted">SHA256</div>
+                      <div style="font-family:monospace; font-size:0.82rem;">${fsha}</div>
+                    </div>
+                  </div>`;
+
+      // Process URLs
+      const urls = Array.isArray(payload.urls) ? payload.urls : [];
+      if (urls.length === 0) {
+        html += `<div class="text-center muted py-4">No URLs found in the uploaded file.</div>`;
+        resultsDiv.innerHTML = html;
+        return;
+      }
+
+      // Render each URL as a modern card
+      urls.forEach((u, idx) => {
+        const url = sget(u, "url", u.url || "Unknown");
+        const ip = sget(u.ip_address || "ip_address" || "N/A");
+        const geo = u.ip_geolocation || {};
+        const city = geo.city || "";
+        const region = geo.region || "";
+        const country = geo.country || "";
+        const loc = (geo.city || geo.region || geo.country) ? [geo.city, geo.region, geo.country].filter(Boolean).join(", ") : "N/A";
+        const ssl = sget(u, "ssl_issuer", "Unknown");
+        const entropy = (u.entropy === undefined || u.entropy === null) ? "N/A" : u.entropy;
+        const ml = (u.ml_score === undefined || u.ml_score === null) ? "N/A" : u.ml_score;
+        const domain_age = (u.domain_age === undefined || u.domain_age === null) ? "N/A" : u.domain_age;
+        const domain_expiry=(u.domain_expiry === undefined || u.domain_expiry === null) ? "N/A" : u.domain_expiry;
+        const ttl = (u.ttl === undefined || u.ttl === null) ? "N/A" : u.ttl;
+        const dns = (u.dns_record === undefined || u.dns_record === null) ? "N/A" : u.dns_record;
+        const blacklist = u.blacklist || { blacklisted: false, source: "N/A", details: "N/A" };
+        const isMal = !!u.is_malicious;
+
+        const decisionHtml = isMal
+          ? `<span class="badge-danger">⚠ Malicious</span>`
+          : `<span class="badge-safe">Safe</span>`;
+
+        // Card HTML
+        html += `<div class="url-card" data-idx="${idx}">
+                  <div class="url-left">
+                    <div style="font-size:0.95rem; font-weight:600; margin-bottom:6px; word-break:break-word;">
+                      <a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>
+                    </div>
+                    <div class="meta-row">
+                      <div class="small-muted">IP: <strong style="color:#0b1720;">${escapeHtml(u.ip_address)}</strong></div>
+                      <div class="small-muted">Location: <strong style="color:#0b1720;">${escapeHtml(loc)}</strong></div>
+                      <div class="small-muted">SSL: <strong style="color:#0b1720;">${escapeHtml(ssl)}</strong></div>
                     </div>
 
-                    <button type="submit" class="btn btn-gradient btn-lg shadow-sm">
-                        <i class="fas fa-upload"></i> Upload and Scan
-                    </button>
-                </form>
+                    <div class="details-grid">
+                      <div class="detail-pill">Entropy: ${escapeHtml(String(entropy))}</div>
+                      <div class="detail-pill">ML score: ${escapeHtml(String(ml))}</div>
+                      <div class="detail-pill">Domain age: ${escapeHtml(String(u.domain_age))}</div>
+                      <div class="detail-pill">TTL: ${escapeHtml(String(ttl))}</div>
+                      <div class="detail-pill">DNS rec: ${escapeHtml(String(dns))}</div>
+                      <div class="detail-pill">Has IP: ${escapeHtml(String(u.has_ip ?? 'N/A'))}</div>
+                    </div>
+                  </div>
 
-                <!-- Result Section -->
-                {% if result %}
-                <div class="alert alert-custom mt-4 text-center animate__animated animate__fadeIn">
-                    <strong>{{ result }}</strong>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
+                  <div class="url-right">
+                    <div style="margin-bottom:10px;">${decisionHtml}</div>
+                    <button class="btn btn-sm btn-outline-secondary toggle-details toggle-btn">Show details</button>
+                  </div>
 
-{%endblock%}
+                  <!-- hidden detailed box -->
+                  <div class="full-details" style="display:none; width:100%; margin-top:12px; grid-column:1/-1;">
+                    <div style="margin-top:12px; display:flex; gap:12px; flex-wrap:wrap;">
+                      <div style="flex:1; min-width:220px;">
+                        <div style="font-weight:700; margin-bottom:6px;">DNS & WHOIS</div>
+                        <div class="small-muted">DNS record: ${escapeHtml(String(dns))}</div>
+                        <div class="small-muted">Domain age: ${escapeHtml(String(domain_age))}</div>
+                        <div class="small-muted">Domain expiry: ${escapeHtml(String(u.domain_expiry ?? 'N/A'))}</div>
+                        <div class="small-muted">TTL: ${escapeHtml(String(ttl))}</div>
+                      </div>
+
+                      <div style="flex:1; min-width:220px;">
+                        <div style="font-weight:700; margin-bottom:6px;">HTML / SSL / Server</div>
+                        <div class="small-muted">Forms: ${escapeHtml(String(u.forms ?? 'N/A'))}</div>
+                        <div class="small-muted">Iframes: ${escapeHtml(String(u.iframes ?? 'N/A'))}</div>
+                        <div class="small-muted">JS includes ratio: ${escapeHtml(String(u.js_includes ?? 'N/A'))}</div>
+                        <div class="small-muted">SSL issuer: ${escapeHtml(ssl)}</div>
+                      </div>
+
+                      <div style="flex:1; min-width:240px;">
+                        <div style="font-weight:700; margin-bottom:6px;">Blacklist & ML</div>
+                        <div style="height:12px;"></div>
+                        <div style="font-weight:700; margin-bottom:6px;">VirusTotal</div>
+                        <div class="small-muted">
+                          Detects: ${ escapeHtml(String(u.vt_url_report?.detects ?? 'N/A')) }
+                        </div>
+                        <div class="small-muted">
+                          Clean Results: ${ escapeHtml(String(u.vt_url_report?.clean ?? 'N/A')) }
+                        </div>
+                        <div class="small-muted">
+                          Suspicious: ${ escapeHtml(String(u.vt_url_report?.suspicious ?? 'N/A')) }
+                        </div>
+                        <div class="small-muted">
+                          Harmless: ${ escapeHtml(String(u.vt_url_report?.harmless ?? 'N/A')) }
+                        </div>
+                        <div class="small-muted">
+                          VT Score: ${ escapeHtml(String(u.vt_url_report?.score ?? 'N/A')) }
+                        </div>
+                        <div class="small-muted">
+                          VT Link: 
+                          ${ u.vt_url_report?.permalink 
+                              ? `<a href="${escapeAttr(u.vt_url_report.permalink)}" target="_blank">View on VT</a>`
+                              : "N/A"
+                          }
+                        </div>
+
+                        <div class="small-muted">Blacklisted: ${blacklist.blacklisted ? 'YES' : 'NO'}</div>
+                        <div class="small-muted">Source: ${escapeHtml(blacklist.source || 'N/A')}</div>
+                        <div class="small-muted">Details: ${escapeHtml(blacklist.details || 'N/A')}</div>
+                        <div style="height:8px;"></div>
+                        <div class="small-muted">Final decision: ${isMal ? '<strong style="color:#a61b1b;">Malicious</strong>' : '<strong style="color:#007a6d;">Safe</strong>'}</div>
+                      </div>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                      <div style="font-weight:700; margin-bottom:6px;">Raw features (truncated)</div>
+                      <pre class="raw-pre">${escapeHtml(JSON.stringify(u.raw_features || u, null, 2))}</pre>
+                    </div>
+                  </div>
+                </div>`; // end url-card
+      }); // end urls.forEach
+
+      resultsDiv.innerHTML = html;
+
+      // wire toggles
+      document.querySelectorAll('.toggle-details').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          const card = this.closest('.url-card');
+          if (!card) return;
+          const full = card.querySelector('.full-details');
+          if (!full) return;
+          if (full.style.display === 'none' || full.style.display === '') {
+            full.style.display = 'block';
+            this.textContent = 'Hide details';
+            // smooth scroll into view on mobile
+            full.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          } else {
+            full.style.display = 'none';
+            this.textContent = 'Show details';
+          }
+        });
+      });
+
+    })
+    .catch(err => {
+      console.error(err);
+      scanBtn.disabled = false;
+      resultsDiv.innerHTML = `<div class="alert alert-danger">Scan failed (network or server error).</div>`;
+      lastScan.textContent = "Last scan: error";
+    });
+
+  }); // end submit handler
+
+  // --- UTILITIES ---
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  function formatBytes(bytes) {
+    if (!bytes || bytes === 0) return "0 B";
+    const sizes = ['B','KB','MB','GB','TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return parseFloat((bytes / Math.pow(1024, i)).toFixed(2)) + ' ' + sizes[i];
+  }
+
+});
+</script>
+</body>
+</html>
+{% endblock %}

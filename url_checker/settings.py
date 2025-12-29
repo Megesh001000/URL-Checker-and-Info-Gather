@@ -11,7 +11,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+# GOOGLE_OAUTH_USER = "yourgmail@gmail.com"
+VT_API_KEY="384bf46e9fa1e5ed33a867fbce9c7bd6dc541c02e78f30d9b8e8f119eafc174c"
 
+ALERT_EMAIL_TO = "megwa2035@gmail.com"
+GOOGLE_OAUTH_USER='megwa2035@gmail.com'
+# GOOGLE_OAUTH_USER = os.environ.get("GOOGLE_OAUTH_USER", "")
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+GOOGLE_TOKEN_PATH = os.environ.get("GOOGLE_TOKEN_PATH", "token.json")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -136,4 +145,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+# API Key for Google Safe Browsing (different from your VirusTotal API Key)
+GOOGLE_SAFE_BROWSING_API_KEY = 'AIzaSyCHFp6RKhwT3vvuhAsSRkWhFbjvG49t5do' 
 
