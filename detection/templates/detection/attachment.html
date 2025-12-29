@@ -119,6 +119,29 @@
         </div>
         <div class="small-muted">Module: Attachment → URL features</div>
       </div>
+{%extends 'detection/base.html' %}
+{%load static%}
+{%block content%}
+
+
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg p-5 rounded-4 animate__animated animate__fadeInUp attachment-card">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-paperclip"></i> File Attachment Scanner
+                </h2>
+                <p class="text-center text-muted mb-4">
+                    Upload your file (CSV, TXT, HTML, or EML) to analyze its safety and check for phishing patterns.
+                </p>
+
+                <!-- Upload Form -->
+                <form method="POST" enctype="multipart/form-data" class="text-center">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        {{ form.as_p }}
+                    </div>
 
       <div class="upload-area mt-3">
         <form id="upload-form" enctype="multipart/form-data" style="flex:1; display:flex; gap:12px; align-items:center;">
