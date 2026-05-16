@@ -33,4 +33,4 @@ Thumbs.db
 
 
 token.json
-gmail_scanner/credentials.jsongit rm --cached token.json
+gmail_scanner/credentials.json
