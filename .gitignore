@@ -30,3 +30,7 @@ db.sqlite3
 Thumbs.db
 
 /venv
+
+
+token.json
+gmail_scanner/credentials.jsongit rm --cached token.json
