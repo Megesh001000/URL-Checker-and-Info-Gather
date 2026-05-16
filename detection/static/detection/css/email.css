@@ -1,0 +1,114 @@
+ body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0a192f, #112240);
+
+         
+        }
+
+        .container {
+        max-width: 1200px;
+           margin:auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .scan-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 12px 25px;
+            background: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .scan-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        table {
+            width: 100%;
+            background: #fff;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        th {
+            background: #007bff;
+            color: white;
+        }
+
+        .badge-safe {
+            padding: 4px 8px;
+            background: #28a745;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .badge-danger {
+            padding: 4px 8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .btn-show {
+            padding: 5px 12px;
+            background: #6c757d;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .details-box {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+       
+body, table, td, th, .details-box, .btn-show {
+    color: #222 ;
+}
+
+/*  table background */
+table, th, td {
+    background: #ffffff ;
+}
+
+
+.details-box {
+    background: #f2f4f7 ;
+    color: #222 ;
+}
+
+
+table a {
+    color: #0645ad ; 
+    text-decoration: underline;
+}
+
+ 
