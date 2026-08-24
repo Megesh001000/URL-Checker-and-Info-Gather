@@ -163,7 +163,7 @@ def safe_domain_extract(url: str):
 #  FeatureExtractor Class 
 
 class FeatureExtractor:
-    def __init__(self, url: str):
+    def __init__(self, url: str, fetch_page: bool = True):
         self.url = unescape(url).strip() if isinstance(url, str) else ""
         self.domain, self.subdomain, self.suffix = safe_domain_extract(self.url)
         self.parsed_url = urlparse(self.url) # Store parsed URL
@@ -174,6 +174,7 @@ class FeatureExtractor:
         self._dns_answer = None
         self._ssl_cert = None
         self._ssl_checked = False
+        self.fetch_page = fetch_page
         # self._phishtank_data = None # Cache for PhishTank data (Efficiency Fix)
 
 
@@ -182,6 +183,8 @@ class FeatureExtractor:
         # Fetch HTML once per instance (cached). Returns text or None.
         if self._html is not None:
             return self._html
+        if not self.fetch_page:
+            return None
         # whitelist check
         if is_whitelisted(self.url):
             logger.debug(f"Skipping page fetch for whitelisted domain: {self.domain}")
@@ -960,9 +963,9 @@ class FeatureExtractor:
 
 #  Execution 
 
-def extract_features(url: str):
+def extract_features(url: str, fetch_page: bool = True):
     """Instantiates and runs the FeatureExtractor class."""
-    fe = FeatureExtractor(url)
+    fe = FeatureExtractor(url, fetch_page=fetch_page)
     return fe.run_all()
 
 if __name__ == "__main__":

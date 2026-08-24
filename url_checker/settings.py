@@ -12,29 +12,29 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
-# GOOGLE_OAUTH_USER = "yourgmail@gmail.com"
-VT_API_KEY="384bf46e9fa1e5ed33a867fbce9c7bd6dc541c02e78f30d9b8e8f119eafc174c"
+from dotenv import load_dotenv
 
-ALERT_EMAIL_TO = "megwa2035@gmail.com"
-GOOGLE_OAUTH_USER='megwa2035@gmail.com'
-# GOOGLE_OAUTH_USER = os.environ.get("GOOGLE_OAUTH_USER", "")
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
+
+VT_API_KEY = os.environ.get("VT_API_KEY", "")
+ALERT_EMAIL_TO = os.environ.get("ALERT_EMAIL_TO", "")
+GOOGLE_OAUTH_USER = os.environ.get("GOOGLE_OAUTH_USER", "")
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 GOOGLE_TOKEN_PATH = os.environ.get("GOOGLE_TOKEN_PATH", "token.json")
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y_jw#(bo1hvsraj01xj20ip16+zu=y-(12^xcc&hm-zb+lz(0r'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() in {"1", "true", "yes"}
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",") if host.strip()]
 
 
 # Application definition
@@ -88,11 +88,11 @@ WSGI_APPLICATION = 'url_checker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'url_checker_db',       # create this database in MySQL
-        'USER': 'root',                 # your MySQL username
-        'PASSWORD': 'megesh2022.,',    # your MySQL password
-        'HOST': 'localhost',            # or your DB host
-        'PORT': '3306',    
+        'NAME': os.environ.get('DB_NAME', 'url_checker_db'),
+        'USER': os.environ.get('DB_USER', ''),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",             # default MySQL port
     }
@@ -148,5 +148,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 
 # API Key for Google Safe Browsing (different from your VirusTotal API Key)
-GOOGLE_SAFE_BROWSING_API_KEY = 'AIzaSyCHFp6RKhwT3vvuhAsSRkWhFbjvG49t5do' 
+GOOGLE_SAFE_BROWSING_API_KEY = os.environ.get("GOOGLE_SAFE_BROWSING_API_KEY", "")
+MAX_ATTACHMENT_UPLOAD_BYTES = int(os.environ.get("MAX_ATTACHMENT_UPLOAD_BYTES", 10 * 1024 * 1024))
 

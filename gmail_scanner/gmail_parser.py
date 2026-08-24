@@ -91,6 +91,12 @@ def load_credentials():
             json.dump(creds_dict, f)
         logger.info(" Access token refreshed and saved to token.json")
     return creds
+def get_oauth2_credentials():
+    """Return a current Gmail OAuth access token for IMAP clients."""
+    creds = load_credentials()
+    if not creds.token:
+        raise RuntimeError("No Gmail OAuth access token is available.")
+    return creds.token
 # def get_oauth2_credentials():
 #     if not all([GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,GOOGLE_OAUTH_USER,GOOGLE_REFRESH_TOKEN]):
 #         raise RuntimeError("Missing OAuth2 environment variables for Gmail.")
@@ -149,7 +155,10 @@ def connect_imap():
 def  fetch_email(mail,folder='INBOX',limit=3,unseen_only=False):
     mail.select(folder)
     search_criteria = "UNSEEN" if unseen_only else "ALL"
-    result,data=mail.search(None,'(SINCE "17-Nov-2025")')
+    result,data=mail.search(None, search_criteria)
+    print("Email Fetched")
+    print(result)
+
     if result != "OK":
         raise RuntimeError(f"Failed to fetch emails from {folder}")
     email_ids=data[0].split()
@@ -166,8 +175,10 @@ def  fetch_email(mail,folder='INBOX',limit=3,unseen_only=False):
         if result != "OK":
             logger.warning(f"Failed to fetch email id {eid}")
             continue
-        msg=email.message_from_bytes(msg_data[0][1])
+        msg=email.message_from_bytes(msg_data[
+            0][1])
         messages.append((eid_str,msg))
+
     return messages
 
 async def fetch_email_async(mail, folder='INBOX', limit=3, unseen_only=False):
@@ -176,7 +187,7 @@ async def fetch_email_async(mail, folder='INBOX', limit=3, unseen_only=False):
 # Parse Email Content
 
 def parse_email(msg):
-    subject,encoding=decode_header(msg.get("Subject"))[0]
+    subject,encoding=decode_header(msg.get("Subject") or "")[0]
     if  isinstance(subject,bytes):
         subject=subject.decode(encoding or "utf-8",errors="ignore")
     from_=msg.get("From")
@@ -196,7 +207,12 @@ def parse_email(msg):
                 except:
                     html_body+=part.get_payload(decode=True).decode(errors="ignore")
     else:
-        body=msg.get_payload(decode=True).decode(errors="ignore")
+        body=(msg.get_payload(decode=True) or b"").decode(errors="ignore")
+        if msg.get_content_type() == "text/html":
+            html_body = body
+        else:
+            plain_body = body
+    print("email parsed")
     return {"subject": subject, "from": from_, "html_body": html_body,"plain_body":plain_body}
         
 
@@ -213,7 +229,7 @@ def parse_email(msg):
 def extract_urls_from_email_body(parsed_data: dict):
     all_urls = set()
 
-    # --- Plain text URLs ---
+    # Plain text URLs 
     plain_body = parsed_data.get("plain_body", "")
     plain_url_pattern = re.compile(
         r"https?://[^\s<>\]\)\"']+",
@@ -228,7 +244,7 @@ def extract_urls_from_email_body(parsed_data: dict):
         re.IGNORECASE
     )
     all_urls.update(html_link_pattern.findall(html_body))
-
+    print("url extracted")
     return list(all_urls)
 
 
@@ -284,7 +300,7 @@ def extract_urls_from_email_body(parsed_data: dict):
 #         except:
 #              pass
         
-def  process_and_notify(limit=5):
+def  process_and_notify(limit=1):
     mail=connect_imap()
     try:
         logger.info(f"Fetching up to {limit} unseen emails...")
@@ -302,7 +318,8 @@ def  process_and_notify(limit=5):
             detailed_url_info=[]
 
             if urls:
-                scan_result=predict_email_urls(urls,use_tool=True)
+                scan_response=predict_email_urls(urls,use_tool=True)
+                scan_result=scan_response.get("results", []) if isinstance(scan_response, dict) else []
                 for idx,url_result in enumerate(scan_result):
                     url_info = {"url": urls[idx]}
                     if isinstance(url_result,dict):
@@ -464,6 +481,8 @@ async def process_single_email_async(eid, msg):
     detailed_url_info = []
 
     if urls:
+        logger.info(f"URLs found: {urls}")
+        logger.info("Starting predict_email_urls...")
         # Predict URLs using async-safe to_thread
         scan_results = await asyncio.to_thread(predict_email_urls, urls, use_tool=True)
 

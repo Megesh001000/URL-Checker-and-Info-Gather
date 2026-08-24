@@ -28,8 +28,8 @@ USER = env("GOOGLE_OAUTH_USER")
 # Connect to IMAP using OAuth2
 
 def imap_connect_oauth():
-    access_token=get_oauth2_credentials
-    auth_string=generate_xoauth2_string(access_token)
+    access_token=get_oauth2_credentials()
+    auth_string=generate_xoauth2_string(USER, access_token)
     client=IMAPClient(HOST, port=PORT, ssl=True, timeout=30)
     client._raw_command('AUTHENTICATE XOAUTH2', auth_string)
     return client

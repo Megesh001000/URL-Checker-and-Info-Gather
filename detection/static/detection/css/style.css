@@ -293,34 +293,6 @@ input[type="file"]:hover {
     color: #ffdd66;
 }  */
 
-/* Glassmorphic Attachment Card */
-.attachment-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 16px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    transition: all 0.5s ease;
-    padding: 3rem;
-    position: relative;
-}
-
-.attachment-card::before {
-    content: '';
-    position: absolute;
-    top: -2px; left: -2px; right: -2px; bottom: -2px;
-    border-radius: 16px;
-    background: linear-gradient(120deg, #00f5d4, #00e5ff, #00cfff, #00f5d4);
-    filter: blur(20px);
-    opacity: 0.4;
-    z-index: 0;
-}
-
-.attachment-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 50px rgba(0, 255, 255, 0.4);
-}
-
 /* Headings */
 h2 {
     color: #00e5ff;
@@ -337,7 +309,7 @@ h2 {
 
 /* Form */
 form {
-    margin-top: 1rem;
+   
     position: relative;
     z-index: 1;
 }
@@ -348,9 +320,9 @@ input[type="file"] {
     border: 1.5px solid rgba(0, 242, 255, 0.5);
     border-radius: 12px;
     color: #e0f7fa;
-    padding: 12px;
+    /* padding: 12px; */
     width: 100%;
-    margin-top: 10px;
+    /* margin-top: 10px; */
     transition: all 0.3s ease;
 }
 input[type="file"]:hover {

@@ -1,4 +1,4 @@
- body {
+ /* body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #0a192f, #112240);
 
@@ -94,7 +94,7 @@ body, table, td, th, .details-box, .btn-show {
     color: #222 ;
 }
 
-/*  table background */
+/*  table background 
 table, th, td {
     background: #ffffff ;
 }
@@ -111,4 +111,146 @@ table a {
     text-decoration: underline;
 }
 
- 
+  */
+
+body {
+        font-family: Arial, sans-serif;
+        background: linear-gradient(135deg, #0a192f, #112240);
+        margin: 0;
+        color: #e6f1ff;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+}
+
+h1 {
+    text-align: center;
+    color: #ffffff;
+}
+
+.scan-btn {
+    display: block;
+    margin: 20px auto;
+    padding: 12px 25px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+
+}
+.scan-btn:hover {
+    
+transform: translateY(-3px);
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+
+}
+
+.scan-btn:disabled {
+    background: #999;
+    cursor: not-allowed;
+}
+.table-wrapper{
+    overflow-x:auto;
+    overflow-y: auto;
+    width:100%;
+}
+
+table {
+    width: 100%;
+    /* background: #fff; */
+    border-collapse: collapse;
+    margin-top: 20px;
+    /* border-radius: 10px; */
+    
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.table:hover{
+    transform: rotateY(10deg) rotateX(5deg) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    text-align: left;
+}
+
+th {
+    color: white;
+}
+
+.badge-safe {
+    padding: 4px 8px;
+    background: #28a745;
+    color: white;
+    border-radius: 5px;
+}
+
+.badge-danger {
+    padding: 4px 8px;
+    background: #dc3545;
+    color: white;
+    border-radius: 5px;
+}
+
+.btn-show {
+    padding: 5px 12px;
+    background: #6c757d;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.details-box {
+    background: rgba(15, 23, 42, 0.95);
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 10px;
+    display: none;
+}
+
+pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+        /* Force readable text colors */
+table, td, .details-box, .btn-show {
+    color: #e6f1ff !important;
+}
+
+/* Dark navy table to match the rest of the application theme. */
+table, th, td {
+    background: #102a43 !important;
+}
+
+th { background: #0b1f33 !important; color: #ffffff !important; }
+
+tbody tr:hover td { background: #163b5c !important; }
+
+.details-box {
+    background: #0b1f33 !important;
+    color: #e6f1ff !important;
+}
+
+/* Fix URL text inside table  */
+table a {
+    color: #5eead4 !important;
+    text-decoration: underline;
+}
+
+@media (max-width:320px){
+   table, th, td {
+    background: #102a43 !important;
+    }
+}   

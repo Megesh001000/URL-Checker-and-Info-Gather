@@ -14,6 +14,8 @@ import time
 import traceback
 from django.core.cache import cache
 
+from html import escape
+
 from urllib.parse import urlparse
 from typing import List, Dict, Any
 from django.conf import settings
@@ -54,8 +56,8 @@ from attachment_scanner.attachment_scanner import AttachmentScanner, extract_url
 logger=logging.getLogger(__name__)
 # Home & URL Result Handling
 
-VT_API_KEY="384bf46e9fa1e5ed33a867fbce9c7bd6dc541c02e78f30d9b8e8f119eafc174c"
-# API_KEY="384bf46e9fa1e5ed33a867fbce9c7bd6dc541c02e78f30d9b8e8f119eafc174c"
+VT_REQUEST_TIMEOUT = 10
+VT_POLL_ATTEMPTS = 3
 def home(request):
     return render(request, 'detection/home.html')
 
@@ -255,8 +257,11 @@ def result(request: HttpRequest) -> HttpResponse:
 
         raw["url"] = url
 
-        #  ML score
-        raw["ml_score"] = dummy_ml_score(raw)
+        # Prefer the trained model; retain the heuristic only as a fallback.
+        prediction = predict_url(url)
+        raw["ml_score"] = prediction.get("final_score") if isinstance(prediction, dict) else None
+        if raw["ml_score"] is None:
+            raw["ml_score"] = dummy_ml_score(raw)
 
         #  Norm 
         norm = normalize_feature_output(raw, default_url=url)
@@ -287,7 +292,7 @@ def result(request: HttpRequest) -> HttpResponse:
 
         # VIRUSTOTAL URL SCAN
         VT_KEY = settings.VT_API_KEY
-        vt_headers = {"x-apikey": VT_KEY}
+        vt_headers = {"x-apikey": VT_KEY} if VT_KEY else None
 
         vt_malicious = vt_suspicious = vt_harmless = 0
         reputation = 0
@@ -296,11 +301,13 @@ def result(request: HttpRequest) -> HttpResponse:
         vt_error = None
 
         try:
+            if not vt_headers:
+                raise RuntimeError("VirusTotal is not configured")
             # Submit URL
             submit = requests.post(
                 "https://www.virustotal.com/api/v3/urls",
                 headers=vt_headers,
-                data={"url": url}
+                data={"url": url}, timeout=VT_REQUEST_TIMEOUT
             )
 
             if submit.status_code == 200:
@@ -308,16 +315,16 @@ def result(request: HttpRequest) -> HttpResponse:
 
                 # Poll until completed
                 vt_report = None
-                for _ in range(12):
+                for _ in range(VT_POLL_ATTEMPTS):
                     poll = requests.get(
                         f"https://www.virustotal.com/api/v3/analyses/{analysis_id}",
-                        headers=vt_headers
+                        headers=vt_headers, timeout=VT_REQUEST_TIMEOUT
                     )
                     js = poll.json()
                     if js["data"]["attributes"]["status"] == "completed":
                         vt_report = js
                         break
-                    time.sleep(2)
+                    time.sleep(1)
 
                 if vt_report:
                     stats = vt_report["data"]["attributes"]["stats"]
@@ -341,7 +348,7 @@ def result(request: HttpRequest) -> HttpResponse:
                     encoded = requests.utils.quote(url, safe="")
                     info = requests.get(
                         f"https://www.virustotal.com/api/v3/urls/{encoded}",
-                        headers=vt_headers
+                        headers=vt_headers, timeout=VT_REQUEST_TIMEOUT
                     )
 
                     if info.status_code == 200:
@@ -363,7 +370,7 @@ def result(request: HttpRequest) -> HttpResponse:
 
         # FINAL DECISION
         is_mal = norm["is_malicious"]
-        decision = "Malicious" if is_mal else "Safe"
+        decision = "Phishing" if is_mal else "Safe"
         css_class = "text-danger" if is_mal else "text-success"
 
         context = {
@@ -503,7 +510,8 @@ async def process_single_email(eid, msg):
     is_phish = False
 
     if urls:
-        scan_results = await asyncio.to_thread(predict_email_urls, urls)
+        scan_response = await asyncio.to_thread(predict_email_urls, urls)
+        scan_results = scan_response.get("results", []) if isinstance(scan_response, dict) else []
 
         for idx, url_text in enumerate(urls):
             raw = scan_results[idx] if idx < len(scan_results) else {}
@@ -669,6 +677,8 @@ def scan_attachment_json(request: HttpRequest) -> JsonResponse:
             return JsonResponse({"ok": False, "error": "No file uploaded"}, status=400)
 
         filename = uploaded.name
+        if uploaded.size > settings.MAX_ATTACHMENT_UPLOAD_BYTES:
+            return JsonResponse({"ok": False, "error": "Attachment exceeds the upload limit"}, status=413)
         content = uploaded.read()
         size = len(content)
 
@@ -685,16 +695,11 @@ def scan_attachment_json(request: HttpRequest) -> JsonResponse:
         for item in report.get("urls", []):
             url_text = item.get("url")
 
-            # FULL FEATURE EXTRACTOR
-            try:
-                raw_features = FeatureExtractor(url_text).run_all()
-            except Exception as e:
-                raw_features = {"url": url_text, "error": str(e)}
-
+            raw_features = dict(item.get("features") or {})
+            prediction = predict_url(url_text)
+            model_score = prediction.get("final_score") if isinstance(prediction, dict) else None
             raw_features["url"] = url_text
-
-            # Dummy ML Score
-            raw_features["ml_score"] = dummy_ml_score(raw_features)
+            raw_features["ml_score"] = model_score if model_score is not None else dummy_ml_score(raw_features)
 
             # Normalize for UI
             norm = normalize_feature_output(raw_features, default_url=url_text)

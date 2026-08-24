@@ -8,133 +8,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'detection/css/email.css' %}">
     <title>Email Scanner</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f4f7;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-
-        .scan-btn {
-            display: block;
-            margin: 20px auto;
-            padding: 12px 25px;
-            background: #007bff;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .scan-btn:disabled {
-            background: #999;
-            cursor: not-allowed;
-        }
-
-        table {
-            width: 100%;
-            background: #fff;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            text-align: left;
-        }
-
-        th {
-            background: #007bff;
-            color: white;
-        }
-
-        .badge-safe {
-            padding: 4px 8px;
-            background: #28a745;
-            color: white;
-            border-radius: 5px;
-        }
-
-        .badge-danger {
-            padding: 4px 8px;
-            background: #dc3545;
-            color: white;
-            border-radius: 5px;
-        }
-
-        .btn-show {
-            padding: 5px 12px;
-            background: #6c757d;
-            border: none;
-            color: white;
-            border-radius: 4px;
-            text-align: center;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .details-box {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            display: none;
-        }
-
-        pre {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        /* Force readable text colors */
-body, table, td, th, .details-box, .btn-show {
-    color: #222 !important;
-}
-
-/* Fix table background */
-table, th, td {
-    background: #ffffff !important;
-}
-
-/* Fix details box */
-.details-box {
-    background: #f2f4f7 !important;
-    color: #222 !important;
-}
-
-/* Fix URL text inside table  */
-table a {
-    color: #0645ad !important; 
-    text-decoration: underline;
-}
-
-    </style>
+    
 </head>
 
 <body>
-<div class="container">
+<div class="container table-wrapper">
 
     <h1>Email Scanner</h1>
 
-    <button id="scanBtn" class="scan-btn" onclick="scanEmails()">Scan Emails</button>
+    <button id="scanBtn" class="scan-btn" onclick="scanEmails()" >Scan Emails</button>
 
-    <table id="emailTable">
+    <table id="emailTable" class="details-table" >
         <thead>
             <tr>
                 <th>Subject</th>
@@ -150,154 +37,11 @@ table a {
 
 </div>
 
-<script>
-
-// Scan Emails Function
-
-function scanEmails() {
-    const btn = document.getElementById("scanBtn");
-    btn.disabled = true;
-    btn.innerText = "Scanning...";
-
-    fetch("/scan-email-json/", {
-        method: "GET"
-    })
-    .then(res => res.json())
-    .then(data => {
-        btn.disabled = false;
-        btn.innerText = "Scan Emails";
-
-        if (!data.ok) {
-            alert("Error scanning emails: " + data.error);
-            return;
-        }
-
-        renderEmails(data.emails);
-    })
-    .catch(err => {
-        btn.disabled = false;
-        btn.innerText = "Scan Emails";
-        alert("Request failed: " + err);
-    });
-}
+<script src="{% static 'detection/js/email_scan.js' %}"></script>
 
 
 
-// Render Table
 
-function renderEmails(emails) {
-    const tbody = document.getElementById("emailRows");
-    tbody.innerHTML = "";  
-
-    emails.forEach((email, index) => {
-
-        const isPhish = email.is_phishing;
-
-        const row = `
-        <tr>
-            <td>${email.subject}</td>
-            <td>${email.from}</td>
-            <td>${renderUrls(email.urls, index)}</td>
-            <td>
-                ${isPhish 
-                    ? '<span class="badge-danger">Phishing</span>' 
-                    : '<span class="badge-safe">Safe</span>'}
-            </td>
-        </tr>
-        `;
-
-        tbody.innerHTML += row;
-    });
-}
-
-
-
-// URL Renderer with "Show More"
-
-function renderUrls(urls, emailIndex) {
-
-    if (!urls || urls.length === 0) {
-        return "<i>No URLs found</i>";
-    }
-
-    let html = "";
-
-    urls.forEach((u, i) => {
-
-        const uid = `details-${emailIndex}-${i}`;
-
-        const geo = u.ip_geolocation || {};
-
-        html += `
-            <div style="margin-bottom:10px;">
-                <b>${u.url}</b>
-                <br>
-
-                ${u.is_malicious
-                    ? '<span class="badge-danger">⚠ Malicious</span>'
-                    : '<span class="badge-safe">Safe</span>'}
-
-                <button class="btn-show" onclick="toggleDetails('${uid}')">
-                    Show More
-                </button>
-
-                <div id="${uid}" class="details-box">
-                    <strong>URL:</strong> ${u.url} <br>
-                    <strong>IP Address:</strong> ${u.ip_address} <br>
-                    <strong>Country:</strong> ${geo.country} <br>
-                    <strong>Region:</strong> ${geo.region} <br>
-                    <strong>City:</strong> ${geo.city} <br>
-                    <strong>Latitude:</strong> ${geo.latitude} <br>
-                    <strong>Longitude:</strong> ${geo.longitude} <br>
-                    <hr>
-
-                    <strong>Domain Age:</strong> ${u.domain_age} days<br>
-                    <strong>Domain Expiry:</strong> ${u.domain_expiry}<br>
-                    <strong>DNS Record:</strong> ${u.dns_record}<br>
-                    <hr>
-
-                    <strong>SSL Issuer:</strong> ${u.ssl_issuer}<br>
-                    <strong>SSL Valid:</strong> ${u.ssl_valid}<br>
-                    <strong>SSL Expiry:</strong> ${u.ssl_expiry}<br>
-                    <hr>
-
-                    <strong>HTML Features:</strong><br>
-                    Forms: ${u.forms} <br>
-                    Iframes: ${u.iframes} <br>
-                    JS Includes: ${u.js_includes} <br>
-                    Redirect Ratio: ${u.redirect_ratio} <br>
-                    <hr>
-
-                    <strong>Blacklist:</strong><br>
-                    Blacklisted: ${u.blacklist.blacklisted == 1  ? "YES" : "NO"} <br>
-                    Source: ${u.blacklist.source} <br>
-                    Details: ${u.blacklist.details} <br>
-                    <hr>
-
-                    <strong>ML Score:</strong> ${u.ml_score}<br>
-                    <strong>Final Decision:</strong> ${
-                        u.is_malicious
-                        ? "<span style='color:red;'>Malicious</span>"
-                        : "<span style='color:green;'>Safe</span>"
-                    }
-                </div>
-            </div>
-        `;
-    });
-
-    return html;
-}
-
-
-
-// Toggle Show/Hide Feature Box
-
-function toggleDetails(id) {
-    const box = document.getElementById(id);
-    box.style.display = box.style.display === "none" ? "block" : "none";
-}
-
-</script>
 
 </body>
 </html>

@@ -31,10 +31,6 @@ class URLScan(models.Model):
     
     
     def save(self,*args, **kwargs):
-        if self.status=="Phishing":
-            self.threat_scores=50
-        else:
-            self.threat_scores=10
         super().save(*args, **kwargs)
     def __str__(self):
         return f"{self.url} - {self.status}"

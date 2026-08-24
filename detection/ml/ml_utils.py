@@ -50,24 +50,23 @@ except Exception:
     BASE_DIR=None
     API_KEY=os.environ.get('API_KEY')
 
-# Fallback base_dir resolution (detection/ml -> project root)
-# if BASE_DIR is None:
-#     THIS_DIR=os.path.dirname(os.path.abspath(__file__))
-    # BASE_DIR=os.path.dirname(os.path.join(THIS_DIR, ".."))
-BASE_DIR = r"C:\Project\URL SAFETY CHECKER\url_checker"
-MODELS_DIR=os.path.join(BASE_DIR,'ml_models')
+# detection/ml -> Django project root. Do not create application directories
+# during import; production code is often mounted read-only.
+if BASE_DIR is None:
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+else:
+    BASE_DIR = str(BASE_DIR)
+# Keep model artifacts alongside this module. The previous location pointed to
+# a non-existent project-root folder and left the classifier permanently off.
+MODELS_DIR=os.path.join(os.path.dirname(__file__), 'ml_models')
 RF_MODEL_NAME = "phiusiil_url_model.joblib"
-HYBRID_MODEL_NAME = "hybrid_model.joblib"
-if not os.path.exists(MODELS_DIR):
-    os.makedirs(MODELS_DIR, exist_ok=True)
+HYBRID_MODEL_NAME = "phiusiil_hybrid_model.joblib"
 LOG_DIR=os.path.join(BASE_DIR,'logs')
-if not os.path.exists(LOG_DIR):
-    os.makedirs(LOG_DIR, exist_ok=True)
 
 # logging
 logger=logging.getLogger('ml_utils')
 if not logger.handlers:
-    handler=logging.FileHandler(os.path.join(LOG_DIR,'ml_utils.log'))
+    handler=logging.StreamHandler()
     formatter=logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
@@ -98,7 +97,7 @@ except Exception:
 
 #  Configuration / constants
 RF_MODEL_NAME="phiusiil_url_model.joblib"      # primary feature model
-HYBRID_MODEL_NAME="hybrid_model.joblib"  # RF + BERT hybrid model
+HYBRID_MODEL_NAME="phiusiil_hybrid_model.joblib"  # RF + BERT hybrid model
 FEATURES_JSON="features_list.json"
 SHAP_SAMPLE_SIZE=200
 FEATURES_JSON_CANDIDATES = ["phiusiil_features.json", "phiusiil_features_list.json", "features_list.json", "features.json"]
@@ -187,6 +186,12 @@ def load_models(force_reload:bool=False):
         else:
             logger.info("No features_list.json found; feature order unset.")
             _models["feature_order"] = None
+
+    # A fitted pipeline's feature names are authoritative. The JSON file may
+    # describe a newer extractor and otherwise causes sklearn to reject input.
+    rf = _models.get("rf")
+    if rf is not None and hasattr(rf, "feature_names_in_"):
+        _models["feature_order"] = list(rf.feature_names_in_)
     # prepare SHAP explainer lazily if possible
     if shap is not None  and _models['shap_explainer'] is None and _models['rf'] is not None:
         _models['shap_explainer'] = None 
@@ -308,12 +313,17 @@ def predict_from_features_dict(feat_dict:Dict[str,Any],return_raw:bool=False) ->
 
         if hybrid:
             try:
+                expected = getattr(hybrid, "n_features_in_", row.shape[1])
+                if expected != row.shape[1]:
+                    raise ValueError(
+                        f"Hybrid model expects {expected} features, got {row.shape[1]}"
+                    )
                 if hasattr(hybrid,"predict_proba"):
                     hybrid_proba = float(hybrid.predict_proba(row)[0,1])
                 else:
                     hybrid_proba = float(hybrid.decision_function(row)[0])
-            except Exception:
-                logger.exception("Hybrid prediction error: %s", e)
+            except Exception as e:
+                logger.warning("Hybrid prediction skipped: %s", e)
                 hybrid_proba=None
                 hybrid_pred=None       
 
@@ -401,7 +411,7 @@ def safe_extract_features(url:str)->Dict[str,Any]:
 
     
     
-def predict_url(url:str,use_tool:bool=False,api_key:Optional[str]=None)->Dict[str,Any]:
+def predict_url(url:str,use_tool:bool=False,api_key:Optional[str]=None, fast_mode:bool=False)->Dict[str,Any]:
     """
      High-level URL prediction:
       - extracts features (via features_extraction.extract_features)
@@ -415,13 +425,13 @@ def predict_url(url:str,use_tool:bool=False,api_key:Optional[str]=None)->Dict[st
         out["error"] = "Invalid URL"
         return out
     
-    cache_key=f"url::{url}"
+    cache_key=f"url::{url}::fast={fast_mode}"
     cached=_cache_get(cache_key)
     if cached:
         return cached
     
     try:
-        feat_dict=extract_features(url)
+        feat_dict=extract_features(url, fetch_page=not fast_mode)
         blacklist_info=feat_dict.get("blacklist",{})
         if isinstance(blacklist_info,dict):
             if  "blacklisted" in  blacklist_info:
@@ -461,7 +471,7 @@ def predict_url(url:str,use_tool:bool=False,api_key:Optional[str]=None)->Dict[st
         logger.exception("Prediction failed for URL %s: %s", url, e)
         return {"error": str(e)}
     
-def predict_batch(urls:list[str],use_tool:bool=False,api_key:Optional[str]=None)-> List[Dict[str,Any]]:
+def predict_batch(urls:list[str],use_tool:bool=False,api_key:Optional[str]=None, fast_mode:bool=False)-> List[Dict[str,Any]]:
 
     """
     Batch predict a list of URLs. Returns list of result dicts in same order.
@@ -469,17 +479,17 @@ def predict_batch(urls:list[str],use_tool:bool=False,api_key:Optional[str]=None)
     results=[]
     for u in urls:
          try:
-             results.append(predict_url(u,use_tool=use_tool,api_key=api_key))
+             results.append(predict_url(u,use_tool=use_tool,api_key=api_key,fast_mode=fast_mode))
          except  Exception as e:
              logger.exception(f"Batch predict error for {u}: {e}")
              results.append({"url": u, "error": str(e)})
     return results
 
-def predict_email_urls(url_list:list[str],use_tool:bool=False,api_key: Optional[str] = None)->Dict[str,Any]:
+def predict_email_urls(url_list:list[str],use_tool:bool=False,api_key: Optional[str] = None, fast_mode:bool=True)->Dict[str,Any]:
     """
     Given list of URLs extracted from an email, predict each and return aggregated summary.
     """
-    results=predict_batch(url_list,use_tool=use_tool,api_key=api_key)
+    results=predict_batch(url_list,use_tool=use_tool,api_key=api_key,fast_mode=fast_mode)
     summary=hybrid_final_decision(results)
     return {"results":results,"summary":summary}
 

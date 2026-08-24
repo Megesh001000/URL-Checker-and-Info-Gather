@@ -60,16 +60,16 @@ document.addEventListener('DOMContentLoaded', function() {
 //  Email Scan 
 document.getElementById('scanBtn').addEventListener('click',() =>{
   const resultDiv=document.getElementById('emailResults');
-  resultDiv.innerHTML=<p>Scanning emails... Please wait.</p>
+  resultDiv.innerHTML="<p>Scanning emails... Please wait.</p>";
 
-  fetch("{% url 'scan_email_api'%}")
-  .then(response=response.json())
+  fetch("{/scan_email_api/}")
+  .then(response=>response.json())
   .then(data =>{
        resultDiv.innerHTML='';
        if(data.results.length ===0){
-          resultsDiv.innerHTML = '<p>No suspicious URLs found in emails.</p>';
+          resultDiv.innerHTML = '<p>No suspicious URLs found in emails.</p>';
        } else{
-            data.results.forEach(items => {
+            data.results.forEach(item => {
               const div=document.createElement('div');
               div.className='card p-2 mb-2';
               div.innerHTML=`
@@ -84,7 +84,7 @@ document.getElementById('scanBtn').addEventListener('click',() =>{
   })
 
   .catch(err => {
-          resultsDiv.innerHTML = `<p class="text-danger">Error scanning emails: ${err}</p>`;
+          resultDiv.innerHTML = `<p class="text-danger">Error scanning emails: ${err}</p>`;
       });
 });
 
